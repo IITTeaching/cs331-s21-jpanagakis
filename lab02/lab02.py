@@ -34,7 +34,25 @@ ROMEO_SOLILOQUY = """
 # Implement this function
 def compute_ngrams(toks, n=2):
     """Returns an n-gram dictionary based on the provided list of tokens."""
-    pass
+    grams = {}
+    keys = []
+    
+    for i in range(0,len(toks)-n+1):
+        keys.append(tuple(toks[i:i+n]))
+    for i in range(0,len(keys)):
+        key = keys[i][0]
+        content = keys[i]
+        x = list(content)
+        del x[0]
+        content = [tuple(x)]
+        
+        if key in grams:
+            extra_content = grams[key]
+            grams[key] = extra_content + content
+        else:   
+            grams[key] = content
+    
+    return grams
 
 def test1():
     test1_1()
@@ -42,7 +60,7 @@ def test1():
 
 # 20 Points
 def test1_1():
-    """A smaller test case for your ngram function."""
+    """A smaller test case for your n-gram function."""
     tc = TestCase()
     simple_toks = [t.lower() for t in 'I really really like cake.'.split()]
 
@@ -92,9 +110,25 @@ def test1_2():
 # EXERCISE 2
 ################################################################################
 # Implement this function
-def gen_passage(ngram_dict, length=100):
-    pass
-
+def gen_passage(ngram_dict, length=10):
+    key = random.choice(sorted(ngram_dict.keys()))
+    material = ngram_dict[key]
+    passage = key
+    count = 0
+    
+    while count != length:
+        material = random.choice(material)
+        for j in material:
+            passage += ' ' + j 
+        if material[-1] not in ngram_dict:
+            key = random.choice(sorted(ngram_dict.keys()))
+            passage += ' ' + key
+            material = ngram_dict[key]
+        else:
+            key = material[-1]
+            material = ngram_dict[key]
+        count = len(passage.split())
+    return passage
 # 50 Points
 def test2():
     """Test case for random passage generation."""
