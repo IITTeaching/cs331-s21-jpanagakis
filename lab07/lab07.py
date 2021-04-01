@@ -14,18 +14,46 @@ class ExtensibleHashTable:
 
     def find_bucket(self, key):
         # BEGIN_SOLUTION
+        idx = hash(key) % self.n_buckets
+        for i in range(idx,self.n_buckets):
+            if not self.buckets[i] or self.buckets[i][0] == key:
+                return i
+        for i in range(0,idx):
+            if not self.buckets[i] or self.buckets[i][0] == key:
+                return i
         # END_SOLUTION
 
-    def __getitem__(self,  key):
+    def __getitem__(self, key):
         # BEGIN_SOLUTION
+        if not self.buckets[self.find_bucket(key)]: raise KeyError
+        else: return self.buckets[self.find_bucket(key)][1]
         # END_SOLUTION
 
     def __setitem__(self, key, value):
         # BEGIN_SOLUTION
+        idx = self.find_bucket(key)
+        if not self.buckets[idx]:
+            self.buckets[idx] = (key,value)
+            self.nitems += 1
+        else:
+            self.buckets[idx] = (key,value)
+            
+        if self.nitems > self.fillfactor*self.n_buckets:
+            oldData = self.items()
+            self.n_buckets *= 2
+            self.buckets = [None] * self.n_buckets
+            self.nitems = 0
+            for i in oldData:
+                self.__setitem__(i[0], i[1])
         # END_SOLUTION
 
     def __delitem__(self, key):
         # BEGIN SOLUTION
+        if not self.buckets[self.find_bucket(key)]:
+            raise KeyError
+        else:
+            self.buckets[self.find_bucket(key)] = None
+            self.nitems += -1
         # END SOLUTION
 
     def __contains__(self, key):
@@ -43,6 +71,9 @@ class ExtensibleHashTable:
 
     def __iter__(self):
         ### BEGIN SOLUTION
+        for i in self.buckets:
+            if i :
+                yield i[0]
         ### END SOLUTION
 
     def keys(self):
@@ -50,10 +81,17 @@ class ExtensibleHashTable:
 
     def values(self):
         ### BEGIN SOLUTION
+        for i in self.items():
+            yield i[1]
         ### END SOLUTION
 
     def items(self):
         ### BEGIN SOLUTION
+        lst = []
+        for i in self.buckets:
+            if i:
+                lst.append(i)
+        return lst
         ### END SOLUTION
 
     def __str__(self):
@@ -110,6 +148,7 @@ def test_iteration():
         h[k] = v
 
     for k, v in entries:
+
         tc.assertEqual(h[k], v)
 
     tc.assertEqual(set(keys), set(h.keys()))
