@@ -15,7 +15,15 @@ class AVLTree:
 
         def rotate_left(self):
             ### BEGIN SOLUTION
+            n = self.right
+            self.val, n.val = n.val, self.val
+            self.right, n.right, self.left, n.left = n.right, n.left, n, self.left
             ### END SOLUTION
+        
+        def tmax(self):
+            if not self.right:
+                return self.val
+            return self.right.tmax()
 
         @staticmethod
         def height(n):
@@ -31,16 +39,76 @@ class AVLTree:
     @staticmethod
     def rebalance(t):
         ### BEGIN SOLUTION
+        def isLeaf():
+            return not t.left and not t.right
+        def bal(node):
+            return AVLTree.Node.height(node.left) - AVLTree.Node.height(node.right)
+        
+        if not isLeaf() and bal(t) == -2:
+            if bal(t.right) == -1:
+                t.rotate_left()
+            else:
+                t.right.rotate_right()
+                t.rotate_left()
+        if not isLeaf() and bal(t) == 2:
+            if bal(t.left) == 1:
+                t.rotate_right()
+            else:
+                t.left.rotate_left()
+                t.rotate_right()
         ### END SOLUTION
 
     def add(self, val):
         assert(val not in self)
         ### BEGIN SOLUTION
+        def add_rec(node):
+            if not node:
+                return AVLTree.Node(val)
+            elif val < node.val:
+                node.left = add_rec(node.left)
+                self.rebalance(node)
+                return node
+            else:
+                node.right = add_rec(node.right)
+                self.rebalance(node)
+                return node
+        
+        self.root = add_rec(self.root)
+        self.size += 1
         ### END SOLUTION
 
     def __delitem__(self, val):
         assert(val in self)
         ### BEGIN SOLUTION
+        def rec_del(parent,isleft,t,val):
+            if t.val > val:
+                rec_del(t, True, t.left, val)
+            elif t.val < val:
+                rec_del(t, False, t.right,val)
+            else:
+                if t.left and t.right:
+                    replaceval = t.left.tmax()
+                    t.val = replaceval
+                    rec_del(t, True, t.left, replaceval)
+                elif t.left:
+                    t.val = t.left.val
+                    t.right = t.left.right
+                    t.left = t.left.left
+                elif t.right:
+                    t.val = t.right.val
+                    t.left = t.right.left
+                    t.right = t.right.right
+                else:
+                    if parent:
+                        if isleft:
+                            parent.left = None
+                        else:
+                            parent.right = None
+
+        rec_del(None,None,self.root,val)
+
+        self.size += -1
+
         ### END SOLUTION
 
     def __contains__(self, val):
@@ -121,7 +189,7 @@ def test_ll_fix_simple():
 
     for x in [3, 2, 1]:
         t.add(x)
-
+        
     tc.assertEqual(height(t.root), 2)
     tc.assertEqual([t.root.left.val, t.root.val, t.root.right.val], [1, 2, 3])
 
